@@ -10,7 +10,7 @@ if db_password is None:
 
 # 連接 MySQL
 conn = mysql.connector.connect(
-    host="localhost",
+    host="54.66.95.186",
     user="root",
     password=db_password,
     database="taipei_travel"
