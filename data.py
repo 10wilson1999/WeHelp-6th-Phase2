@@ -1,18 +1,11 @@
 import json
-import os
 import mysql.connector # type: ignore
-
-# 從環境變數中讀取資料庫密碼
-db_password = os.getenv('DB_PASSWORD')
-
-if db_password is None:
-    raise ValueError("Database password not set in environment variables")
 
 # 連接 MySQL
 conn = mysql.connector.connect(
     host="54.66.95.186",
     user="root",
-    password=db_password,
+    password="10wilson1999",
     database="taipei_travel"
 )
 cursor = conn.cursor()

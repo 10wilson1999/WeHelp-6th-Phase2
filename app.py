@@ -2,7 +2,6 @@ from fastapi import * # type: ignore
 from fastapi.responses import FileResponse # type: ignore
 from fastapi import FastAPI, Query, HTTPException # type: ignore
 import mysql.connector # type: ignore
-import os
 app=FastAPI() # type: ignore
 
 # Static Pages (Never Modify Code in this Block)
@@ -19,18 +18,12 @@ async def booking(request: Request): # type: ignore
 async def thankyou(request: Request): # type: ignore
 	return FileResponse("./static/thankyou.html", media_type="text/html")
 
-# 從環境變數中讀取資料庫密碼
-db_password = os.getenv('DB_PASSWORD')
-
-if db_password is None:
-    raise ValueError("Database password not set in environment variables")
-
 # 連接 MySQL
 def get_db_connection():
     return mysql.connector.connect(
         host="54.66.95.186",
         user="root",
-        password=db_password,
+        password="10wilson1999",
         database="taipei_travel"
     )
 
