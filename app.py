@@ -21,7 +21,7 @@ async def thankyou(request: Request): # type: ignore
 # 連接 MySQL
 def get_db_connection():
     return mysql.connector.connect(
-        host="54.66.95.186",
+        host="172.31.23.142",
         user="root",
         password="10wilson1999",
         database="taipei_travel"
