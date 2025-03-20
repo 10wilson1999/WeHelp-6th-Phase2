@@ -13,7 +13,7 @@ origins = [
 # 加入 CORS 中間件
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # 允許的來源
+    aallow_origins=["*"],  # 允許的來源
     allow_credentials=True,
     allow_methods=["*"],  # 允許所有 HTTP 方法
     allow_headers=["*"],  # 允許所有 Header
