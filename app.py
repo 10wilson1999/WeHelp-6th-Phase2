@@ -2,7 +2,22 @@ from fastapi import * # type: ignore
 from fastapi.responses import FileResponse # type: ignore
 from fastapi import FastAPI, Query, HTTPException # type: ignore
 import mysql.connector # type: ignore
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
 app=FastAPI() # type: ignore
+
+# 允許的來源網址
+origins = [
+    "http://http://54.66.95.186:8000/"
+]
+
+# 加入 CORS 中間件
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # 允許的來源
+    allow_credentials=True,
+    allow_methods=["*"],  # 允許所有 HTTP 方法
+    allow_headers=["*"],  # 允許所有 Header
+)
 
 # Static Pages (Never Modify Code in this Block)
 @app.get("/", include_in_schema=False)
