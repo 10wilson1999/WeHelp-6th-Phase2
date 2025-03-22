@@ -71,7 +71,7 @@ def get_attractions(
     params = []
 
     if keyword:
-        where_clause.append("(a.name LIKE %s OR a.mrt = %s)")
+        where_clause.append("(a.name LIKE %s OR a.mrt LIKE %s)")
         params.extend([f"%{keyword}%", keyword])
 
     if where_clause:
