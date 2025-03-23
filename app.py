@@ -7,7 +7,7 @@ app = FastAPI()  # type: ignore
 
 # 允許的來源網址
 origins = [
-    "http://3.27.156.245:8000/"
+    "http://03.27.156.245:8000/"
 ]
 
 # 加入 CORS 中間件
