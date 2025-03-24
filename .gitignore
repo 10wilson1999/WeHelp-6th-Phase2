@@ -139,3 +139,10 @@ cython_debug/
 
 # macOS
 .DS_Store
+
+# 忽略虛擬環境
+fastapi_env/
+
+# 忽略 nohup 產生的日誌
+nohup.out
+uvicorn.log
