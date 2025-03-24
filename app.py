@@ -3,12 +3,16 @@ from fastapi.responses import FileResponse  # type: ignore
 from fastapi import FastAPI, Query, HTTPException  # type: ignore
 import mysql.connector  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from fastapi.staticfiles import StaticFiles # type: ignore
 app = FastAPI()  # type: ignore
 
 # 允許的來源網址
 origins = [
     "http://3.27.156.245:8000/"
 ]
+
+# 提供靜態文件
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 # 加入 CORS 中間件
 app.add_middleware(
