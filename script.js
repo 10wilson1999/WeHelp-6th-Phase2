@@ -15,7 +15,7 @@ function getTargetContainer() {
 const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
         if (entry.isIntersecting && nextPage !== null && !isFetching) {
-            const url = `http://54.66.95.186:8000/api/attractions?page=${nextPage}&keyword=${encodeURIComponent(searchKeyword)}`;
+            const url = `http://52.62.175.53:8000/api/attractions?page=${nextPage}&keyword=${encodeURIComponent(searchKeyword)}`;
             fetchAttractions(url);
         }
     });
@@ -45,7 +45,7 @@ function fetchAttractions(url) {
 }
 
 // **初次載入**
-fetchAttractions(`http://54.66.95.186:8000/api/attractions?page=${nextPage}`);
+fetchAttractions(`http://52.62.175.53:8000/api/attractions?page=${nextPage}`);
 
 // **監聽視窗大小變化，只重新渲染適當容器**
 window.addEventListener("resize", () => {
@@ -59,7 +59,7 @@ window.addEventListener("resize", () => {
     });
 
     // 重新載入當前頁面數據到新容器
-    fetchAttractions(`http://54.66.95.186:8000/api/attractions?page=0`);
+    fetchAttractions(`http://52.62.175.53:8000/api/attractions?page=0`);
 
     observer.disconnect(); // 先清除監測
     // 等待新容器渲染後啟動滾動加載
@@ -98,7 +98,7 @@ function handleSearch(keyword) {
         el.innerHTML = "";
     });
 
-    const url = `http://54.66.95.186:8000/api/attractions?page=0&keyword=${encodeURIComponent(keyword)}`;
+    const url = `http://52.62.175.53:8000/api/attractions?page=0&keyword=${encodeURIComponent(keyword)}`;
 
     fetchAttractions(url);
 }
@@ -174,7 +174,7 @@ function scrollMRT(mrtDiv, offset) {
 
 async function fetchMRTStations() {
     try {
-        const response = await fetch("http://54.66.95.186:8000/api/mrts");
+        const response = await fetch("http://52.62.175.53:8000/api/mrts");
         const data = await response.json();
         if (data && data.data) {
             updateMRTList(data.data);
@@ -233,7 +233,7 @@ function searchByMRT(mrtName) {
     });
 
     // 重新發送 API 請求，改用 `keyword` 參數來確保搜尋準確性
-    const url = `http://54.66.95.186:8000/api/attractions?page=0&keyword=${encodeURIComponent(mrtName)}`;
+    const url = `http://52.62.175.53:8000/api/attractions?page=0&keyword=${encodeURIComponent(mrtName)}`;
     fetchAttractions(url);
 }
 
