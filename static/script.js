@@ -92,22 +92,10 @@ document.querySelector(".mrt-container").addEventListener("click", event => {
     }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    const mrtContainer = document.querySelector(".mrt-container");
-    if (mrtContainer) {
-        mrtContainer.addEventListener("click", event => {
-            if (event.target.classList.contains("item")) {
-                const mrtName = event.target.textContent.trim();
-                document.querySelector("input[type='text']").value = mrtName;
-                searchByMRT(mrtName);
-            }
-        });
-    }
-});
-
 
 // 根據捷運站名稱搜尋
 function searchByMRT(mrtName) {
+    if (isFetching) return;
     searchKeyword = mrtName;
     nextPage = 0;
     isFetching = false;
