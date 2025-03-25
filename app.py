@@ -1,22 +1,47 @@
-from fastapi import * # type: ignore
-from fastapi.responses import FileResponse # type: ignore
-from fastapi import FastAPI, Query, HTTPException # type: ignore
-import mysql.connector # type: ignore
-app=FastAPI() # type: ignore
+from fastapi import *  # type: ignore
+from fastapi.responses import FileResponse  # type: ignore
+from fastapi import FastAPI, Query, HTTPException  # type: ignore
+import mysql.connector  # type: ignore
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from fastapi.staticfiles import StaticFiles # type: ignore
+app = FastAPI()  # type: ignore
+
+# 允許的來源網址
+origins = [
+    "http://3.27.156.245:8000/"
+]
+
+# 提供靜態文件
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+
+# 加入 CORS 中間件
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允許的來源
+    allow_credentials=True,
+    allow_methods=["*"],  # 允許所有 HTTP 方法
+    allow_headers=["*"],  # 允許所有 Header
+)
 
 # Static Pages (Never Modify Code in this Block)
 @app.get("/", include_in_schema=False)
-async def index(request: Request): # type: ignore
-	return FileResponse("./static/index.html", media_type="text/html")
+async def index(request: Request):  # type: ignore
+    return FileResponse("./static/index.html", media_type="text/html")
+
+
 @app.get("/attraction/{id}", include_in_schema=False)
-async def attraction(request: Request, id: int): # type: ignore
-	return FileResponse("./static/attraction.html", media_type="text/html")
+async def attraction(request: Request, id: int):  # type: ignore
+    return FileResponse("./static/attraction.html", media_type="text/html")
+
+
 @app.get("/booking", include_in_schema=False)
-async def booking(request: Request): # type: ignore
-	return FileResponse("./static/booking.html", media_type="text/html")
+async def booking(request: Request):  # type: ignore
+    return FileResponse("./static/booking.html", media_type="text/html")
+
+
 @app.get("/thankyou", include_in_schema=False)
-async def thankyou(request: Request): # type: ignore
-	return FileResponse("./static/thankyou.html", media_type="text/html")
+async def thankyou(request: Request):  # type: ignore
+    return FileResponse("./static/thankyou.html", media_type="text/html")
 
 # 連接 MySQL
 def get_db_connection():
@@ -50,7 +75,7 @@ def get_attractions(
     params = []
 
     if keyword:
-        where_clause.append("(a.name LIKE %s OR a.mrt = %s)")
+        where_clause.append("(a.name LIKE %s OR a.mrt LIKE %s)")
         params.extend([f"%{keyword}%", keyword])
 
     if where_clause:
@@ -59,8 +84,11 @@ def get_attractions(
     sql += " GROUP BY a.id LIMIT %s OFFSET %s"
     params.extend([limit, offset])
 
-    cursor.execute(sql, params)
-    results = cursor.fetchall()
+    try:
+        cursor.execute(sql, params)
+        results = cursor.fetchall()
+    except mysql.connector.Error as e:
+        raise HTTPException(status_code=500, detail={"error": True, "message": f"資料庫錯誤: {str(e)}"})
 
     # 處理圖片 URL 列表
     for result in results:
@@ -97,8 +125,8 @@ def get_attraction(attractionId: int):
         conn.close()
         return {"data": attraction}
 
-    except mysql.connector.Error:
-        raise HTTPException(status_code=500, detail={"error": True, "message": "伺服器內部錯誤"})
+    except mysql.connector.Error as e:
+        raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})
 
 @app.get("/api/mrts")
 def get_mrt_list():
@@ -120,5 +148,5 @@ def get_mrt_list():
         conn.close()
         return {"data": mrt_list}
 
-    except mysql.connector.Error:
-        raise HTTPException(status_code=500, detail={"error": True, "message": "伺服器內部錯誤"})
+    except mysql.connector.Error as e:
+        raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})

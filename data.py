@@ -3,7 +3,7 @@ import mysql.connector # type: ignore
 
 # 連接 MySQL
 conn = mysql.connector.connect(
-    host="172.31.23.142",
+    host="172.31.3.103",
     user="root",
     password="10wilson1999",
     database="taipei_travel"
