@@ -118,6 +118,11 @@ function renderSpots(spots) {
         const spotDiv = document.createElement("div");
         spotDiv.className = "spot";
 
+        // 添加點擊事件，導向 attraction.html
+        spotDiv.addEventListener("click", () => {
+            window.location.href = `attraction.html?id=${spot.id}`;
+        });
+
         // 處理圖片
         const img = document.createElement("img");
         img.src = spot.images[0];
