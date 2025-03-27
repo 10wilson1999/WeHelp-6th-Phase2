@@ -118,9 +118,9 @@ function renderSpots(spots) {
         const spotDiv = document.createElement("div");
         spotDiv.className = "spot";
 
-        // 添加點擊事件，導向 attraction.html
+        // 添加點擊事件，導向景點分頁
         spotDiv.addEventListener("click", () => {
-            window.location.href = `attraction.html?id=${spot.id}`;
+            window.location.href = `http://52.62.175.53:8000/attraction/${spot.id}`;
         });
 
         // 處理圖片

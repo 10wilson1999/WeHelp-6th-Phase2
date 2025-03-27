@@ -1,7 +1,19 @@
+// 返回首頁
+document.addEventListener("DOMContentLoaded", function () {
+    // 選取 .title 元素
+    const titleElement = document.querySelector(".title");
+
+    // 監聽點擊事件，導向首頁
+    titleElement.addEventListener("click", function () {
+        window.location.href = "http://52.62.175.53:8000/";
+    });
+});
+
+// 渲染資料
 document.addEventListener("DOMContentLoaded", async function () {
     // 取得 URL 參數 id
-    const urlParams = new URLSearchParams(window.location.search);
-    const idNumber = urlParams.get("id");
+    const pathSegments = window.location.pathname.split("/");
+    const idNumber = pathSegments[pathSegments.length - 1]; // 取得最後的數字部分
 
     if (!idNumber) {
         console.error("缺少 id 參數");
