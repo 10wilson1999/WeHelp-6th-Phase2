@@ -118,6 +118,11 @@ function renderSpots(spots) {
         const spotDiv = document.createElement("div");
         spotDiv.className = "spot";
 
+        // 添加點擊事件，導向景點分頁
+        spotDiv.addEventListener("click", () => {
+            window.location.href = `http://52.62.175.53:8000/attraction/${spot.id}`;
+        });
+
         // 處理圖片
         const img = document.createElement("img");
         img.src = spot.images[0];
