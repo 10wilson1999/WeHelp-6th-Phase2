@@ -43,6 +43,12 @@ body {
     cursor: pointer;
 }
 
+/* navbar-hr */
+.navbar-hr {
+    border: none;
+    border-top: 1px solid #E8E8E8;
+}
+
 /* section */
 .section {
     justify-content: center;
@@ -282,6 +288,12 @@ body {
     margin: 15px 20px 0 20px;
 }
 
+/* section-hr */
+.section-hr {
+    border: none;
+    border-top: 1px solid #E8E8E8;
+}
+
 /* description */
 .content {
     font-weight: 400;
@@ -345,8 +357,6 @@ body {
     .section-hr {
         width: auto;
         margin: 40px 10px 40px 10px;
-        border: none;
-        border-top: 1px solid #E8E8E8;
     }
     .description {
         margin: 0 10px 20px 10px;
@@ -388,8 +398,6 @@ body {
     }
     .navbar-hr {
         display: block;
-        border: none;
-        border-top: 1px solid #E8E8E8;
     }
     .section {
         display: flex;
@@ -421,8 +429,6 @@ body {
     .section-hr {
         width: 1200px;
         margin: 40px auto;
-        border: none;
-        border-top: 1px solid #E8E8E8;
     }    
     .description {
         width: 1180px;
