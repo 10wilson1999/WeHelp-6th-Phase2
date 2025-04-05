@@ -1,9 +1,15 @@
-from fastapi import *  # type: ignore
-from fastapi.responses import FileResponse  # type: ignore
-from fastapi import FastAPI, Query, HTTPException  # type: ignore
-import mysql.connector  # type: ignore
-from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from fastapi import FastAPI, Query, HTTPException, Depends, Request # type: ignore
+from fastapi.responses import FileResponse # type: ignore
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
+from datetime import datetime, timedelta
+import mysql.connector # type: ignore
+import hashlib
+import jwt # type: ignore
+from pydantic import BaseModel # type: ignore
+from typing import Optional, List
+
 app = FastAPI()  # type: ignore
 
 # 允許的來源網址
@@ -150,3 +156,140 @@ def get_mrt_list():
 
     except mysql.connector.Error as e:
         raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})
+
+# JWT 設定
+SECRET_KEY = "10wilson1999"
+ALGORITHM = "HS256"
+TOKEN_EXPIRE_DAYS = 7
+
+security = HTTPBearer() # type: ignore
+
+# 密碼雜湊（SHA-256）
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# 產生 JWT token
+def create_token(data: dict) -> str:
+    payload = {
+        **data,
+        "exp": datetime.utcnow() + timedelta(days=TOKEN_EXPIRE_DAYS)
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+# 驗證 JWT token 並取得使用者資料
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail={"error": True, "message": "Token已過期"})
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail={"error": True, "message": "無效的Token"})
+    
+# 輸入參數 Schema
+class UserRegister(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+# 1️. 註冊新會員
+@app.post("/api/user")
+def register_user(user: dict):
+    name = user.get("name")
+    email = user.get("email")
+    password = user.get("password")
+
+    if not name or not email or not password:
+        raise HTTPException(status_code=400, detail={
+            "error": True,
+            "message": "請填寫所有欄位"
+        })
+
+    hashed_pw = hash_password(password)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # 檢查是否已存在 Email
+        cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail={
+                "error": True,
+                "message": "註冊失敗，重複的Email或其他原因"
+            })
+
+        # 寫入新會員資料
+        cursor.execute(
+            "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",
+            (name, email, hashed_pw)
+        )
+        conn.commit()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={
+            "error": True,
+            "message": f"伺服器內部錯誤: {str(e)}"
+        })
+    finally:
+        conn.close()
+
+# 2️. 登入會員帳戶
+@app.put("/api/user/auth")
+def login_user(login_data: dict):
+    email = login_data.get("email")
+    password = login_data.get("password")
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail={
+            "error": True,
+            "message": "請填寫帳號與密碼"
+        })
+
+    hashed_pw = hash_password(password)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute(
+            "SELECT id, name, email FROM users WHERE email = %s AND password = %s",
+            (email, hashed_pw)
+        )
+        user = cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=400, detail={
+                "error": True,
+                "message": "登入失敗，帳號或密碼錯誤或其他原因"
+            })
+
+        token = create_token({
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"]
+        })
+
+        return {"token": token}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={
+            "error": True,
+            "message": f"伺服器內部錯誤: {str(e)}"
+        })
+    finally:
+        conn.close()
+
+# 3️. 取得當前登入的會員資訊
+@app.get("/api/user/auth")
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        user_data = decode_token(token)
+        return {"data": {
+            "id": user_data["id"],
+            "name": user_data["name"],
+            "email": user_data["email"]
+        }}
+    except Exception as e:
+        return {"data": None}

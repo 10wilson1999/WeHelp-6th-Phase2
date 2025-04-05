@@ -322,6 +322,120 @@ body {
     text-align: center;
 }
 
+/* Dialog */
+/* Dialog 外層 */
+.dialog-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 80px;
+    z-index: 1000;
+}
+
+/* Dialog 內容 */
+.dialog {
+    background: #fff;
+    width: 310px;
+    padding: 15px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.dialog-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 340px;
+    height: 10px;
+    background: linear-gradient(to right, #66AABB, #337788);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+/* Dialog 關閉按鈕 */
+.dialog-close {
+    position: absolute;
+    top: 20px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 20px;
+    color: #757575;
+}
+
+/* Dialog 表單通用 */
+.form {
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+    gap: 5px;
+}
+
+.form-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #666666;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.form input {
+    height: 30px;
+    padding: 5px 15px;
+    margin: 5px 0;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.form button {
+    background-color: #448899;
+    color: white;
+    padding: 10px 20px;
+    margin: 5px 0;
+    font-size: 19px;
+    font-weight: 400;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form-switch {
+    text-align: center;
+    font-weight: 500;
+    font-size: 16px;
+    color: #666666;
+}
+
+.form-switch span {
+    color: #666666;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+/* Dialog 提示訊息 */
+.form-message {
+    font-weight: 500;
+    font-size: 16px;
+    text-align: center;
+}
+
+/* Dialog 登入高度 */
+.login-form {
+    min-height: 245px;
+}
+
+/* Dialog 註冊高度 */
+.register-form {
+    min-height: 302px;
+}
+
 /* RWD */
 @media (min-width: 360px) {
     .navbar {

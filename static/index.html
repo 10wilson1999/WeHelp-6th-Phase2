@@ -37,5 +37,33 @@
             <div class="spots"></div>
             <div class="copyright">COPYRIGHT © 2021 台北一日遊</div>
         </div>
+        <!-- 登入/註冊 Dialog -->
+        <div class="dialog-container" id="dialog" style="display: none;">
+            <div class="dialog">
+                <div class="dialog-bar"></div>
+                <div class="dialog-close" id="closeDialog">✕</div>
+                
+                <!-- 登入表單 -->
+                <div class="form login-form">
+                    <div class="form-title">登入會員帳號</div>
+                    <input type="email" placeholder="輸入電子信箱" id="loginEmail">
+                    <input type="password" placeholder="輸入密碼" id="loginPassword">
+                    <button id="loginButton">登入帳戶</button>
+                    <div class="form-message" id="loginMessage"></div>
+                    <div class="form-switch">還沒有帳戶？<span id="switchToRegister">點此註冊</span></div>
+                </div>
+
+                <!-- 註冊表單 -->
+                <div class="form register-form" style="display: none;">
+                    <div class="form-title">註冊會員帳號</div>
+                    <input type="text" placeholder="輸入姓名" id="registerName">
+                    <input type="email" placeholder="輸入電子信箱" id="registerEmail">
+                    <input type="password" placeholder="輸入密碼" id="registerPassword">
+                    <button id="registerButton">註冊新帳戶</button>
+                    <div class="form-message" id="registerMessage"></div>
+                    <div class="form-switch">已有帳戶了？<span id="switchToLogin">點此登入</span></div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
