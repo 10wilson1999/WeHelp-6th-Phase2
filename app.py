@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
 from datetime import datetime, timedelta
 import mysql.connector # type: ignore
-import hashlib
+import bcrypt # type: ignore
 import jwt # type: ignore
 from pydantic import BaseModel # type: ignore
 from typing import Optional, List
@@ -164,9 +164,9 @@ TOKEN_EXPIRE_DAYS = 7
 
 security = HTTPBearer() # type: ignore
 
-# 密碼雜湊（SHA-256）
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+# 密碼儲存方式（使用 bcrypt）
+def hash_password(password):
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
 # 產生 JWT token
 def create_token(data: dict) -> str:
@@ -249,17 +249,24 @@ def login_user(login_data: dict):
             "message": "請填寫帳號與密碼"
         })
 
-    hashed_pw = hash_password(password)
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
         cursor.execute(
-            "SELECT id, name, email FROM users WHERE email = %s AND password = %s",
-            (email, hashed_pw)
+            "SELECT id, name, email, password FROM users WHERE email = %s",
+            (email,)
         )
         user = cursor.fetchone()
+
         if not user:
+            raise HTTPException(status_code=400, detail={
+                "error": True,
+                "message": "登入失敗，帳號或密碼錯誤或其他原因"
+            })
+
+        # 密碼比對
+        if not bcrypt.checkpw(password.encode('utf-8'), user["password"]):
             raise HTTPException(status_code=400, detail={
                 "error": True,
                 "message": "登入失敗，帳號或密碼錯誤或其他原因"
@@ -271,7 +278,8 @@ def login_user(login_data: dict):
             "email": user["email"]
         })
 
-        return {"token": token}
+        return {"ok": True, "token": token}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail={
             "error": True,
