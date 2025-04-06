@@ -1,13 +1,12 @@
 from fastapi import FastAPI, Query, HTTPException, Depends, Request # type: ignore
-from fastapi.responses import FileResponse, JSONResponse # type: ignore
+from fastapi.responses import FileResponse # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
 from datetime import datetime, timedelta
 import mysql.connector # type: ignore
-import bcrypt # type: ignore
+import hashlib
 import jwt # type: ignore
-import logging
 from pydantic import BaseModel # type: ignore
 from typing import Optional, List
 
@@ -50,30 +49,14 @@ async def booking(request: Request):  # type: ignore
 async def thankyou(request: Request):  # type: ignore
     return FileResponse("./static/thankyou.html", media_type="text/html")
 
-
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
 # 連接 MySQL
 def get_db_connection():
-    try:
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="10wilson1999",
-            database="taipei_travel"
-        )
-        return conn
-    except mysql.connector.Error as err:
-        logging.error(f"資料庫連接錯誤: {err}")
-        raise HTTPException(status_code=500, detail="無法連接資料庫")
-
-# 捕捉 SQL 錯誤  
-def execute_query(cursor, query, params=None):
-    try:
-        cursor.execute(query, params)
-    except mysql.connector.Error as e:
-        logging.error(f"SQL 查詢錯誤: {e}")
-        raise HTTPException(status_code=500, detail={"error": True, "message": f"資料庫錯誤: {str(e)}"})
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="10wilson1999",
+        database="taipei_travel"
+    )
 
 @app.get("/api/attractions")
 def get_attractions(
@@ -181,9 +164,9 @@ TOKEN_EXPIRE_DAYS = 7
 
 security = HTTPBearer() # type: ignore
 
-# 密碼儲存方式（使用 bcrypt）
-def hash_password(password):
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+# 密碼雜湊（SHA-256）
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
 
 # 產生 JWT token
 def create_token(data: dict) -> str:
@@ -199,14 +182,9 @@ def decode_token(token: str):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
-        logging.warning(f"Token 已過期: {token}")
         raise HTTPException(status_code=401, detail={"error": True, "message": "Token已過期"})
     except jwt.InvalidTokenError:
-        logging.warning(f"無效的 Token: {token}")
         raise HTTPException(status_code=401, detail={"error": True, "message": "無效的Token"})
-    except Exception as e:
-        logging.error(f"JWT 解碼錯誤: {str(e)}")
-        raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})
     
 # 輸入參數 Schema
 class UserRegister(BaseModel):
@@ -266,32 +244,22 @@ def login_user(login_data: dict):
     password = login_data.get("password")
 
     if not email or not password:
-        logging.warning(f"登入失敗：缺少電子郵件或密碼，輸入資料：{login_data}")
         raise HTTPException(status_code=400, detail={
             "error": True,
             "message": "請填寫帳號與密碼"
         })
 
+    hashed_pw = hash_password(password)
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
         cursor.execute(
-            "SELECT id, name, email, password FROM users WHERE email = %s",
-            (email,)
+            "SELECT id, name, email FROM users WHERE email = %s AND password = %s",
+            (email, hashed_pw)
         )
         user = cursor.fetchone()
-
         if not user:
-            logging.warning(f"登入失敗：使用者不存在，電子郵件：{email}")
-            raise HTTPException(status_code=400, detail={
-                "error": True,
-                "message": "登入失敗，帳號或密碼錯誤或其他原因"
-            })
-
-        # 密碼比對
-        if not bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
-            logging.warning(f"登入失敗：密碼錯誤，電子郵件：{email}")
             raise HTTPException(status_code=400, detail={
                 "error": True,
                 "message": "登入失敗，帳號或密碼錯誤或其他原因"
@@ -302,11 +270,9 @@ def login_user(login_data: dict):
             "name": user["name"],
             "email": user["email"]
         })
-        logging.info(f"登入成功，使用者：{user['email']}")
-        return {"ok": True, "token": token}
 
+        return {"token": token}
     except Exception as e:
-        logging.error(f"登入錯誤：{str(e)}")
         raise HTTPException(status_code=500, detail={
             "error": True,
             "message": f"伺服器內部錯誤: {str(e)}"
@@ -327,11 +293,3 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         }}
     except Exception as e:
         return {"data": None}
-    
-@app.exception_handler(Exception)
-def global_exception_handler(request, exc):
-    logging.error(f"伺服器錯誤: {str(exc)}，請求路徑: {request.url}")
-    return JSONResponse(
-        status_code=500,
-        content={"message": "伺服器內部錯誤"}
-    )
