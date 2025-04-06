@@ -213,21 +213,27 @@ loginButton.addEventListener('click', async (e) => {
         return;
     }
 
-    const response = await fetch('http://52.62.175.53:8000/api/user/auth', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-    });
+    try {
+        const response = await fetch('http://52.62.175.53:8000/api/user/auth', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
 
-    const result = await response.json();
+        const result = await response.json();
 
-    if (response.ok && result.ok) {
-        localStorage.setItem('token', result.token);
-        dialog.style.display = 'none';
-        updateUIAfterLogin();
-    } else {
+        if (response.ok && result.ok) {
+            localStorage.setItem('token', result.token);
+            dialog.style.display = 'none';
+            updateUIAfterLogin();
+        } else {
+            loginMessage.style.color = 'red';
+            loginMessage.textContent = result.message || '登入失敗';
+        }
+    } catch (error) {
         loginMessage.style.color = 'red';
-        loginMessage.textContent = result.message || '登入失敗';
+        loginMessage.textContent = '伺服器錯誤，請稍後再試';
+        console.error("API 請求錯誤：", error);  // 捕捉錯誤
     }
 });
 

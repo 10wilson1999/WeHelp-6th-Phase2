@@ -51,12 +51,17 @@ async def thankyou(request: Request):  # type: ignore
 
 # 連接 MySQL
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="10wilson1999",
-        database="taipei_travel"
-    )
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="10wilson1999",
+            database="taipei_travel"
+        )
+        return conn
+    except mysql.connector.Error as err:
+        print(f"資料庫連接錯誤: {err}")
+        raise HTTPException(status_code=500, detail="無法連接資料庫")
 
 @app.get("/api/attractions")
 def get_attractions(
@@ -281,6 +286,7 @@ def login_user(login_data: dict):
         return {"ok": True, "token": token}
 
     except Exception as e:
+        print(f"登入錯誤: {str(e)}")
         raise HTTPException(status_code=500, detail={
             "error": True,
             "message": f"伺服器內部錯誤: {str(e)}"
