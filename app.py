@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import mysql.connector # type: ignore
 import bcrypt # type: ignore
 import jwt # type: ignore
+import logging
 from pydantic import BaseModel # type: ignore
 from typing import Optional, List
 
@@ -49,6 +50,9 @@ async def booking(request: Request):  # type: ignore
 async def thankyou(request: Request):  # type: ignore
     return FileResponse("./static/thankyou.html", media_type="text/html")
 
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 # 連接 MySQL
 def get_db_connection():
     try:
@@ -60,8 +64,16 @@ def get_db_connection():
         )
         return conn
     except mysql.connector.Error as err:
-        print(f"資料庫連接錯誤: {err}")
+        logging.error(f"資料庫連接錯誤: {err}")
         raise HTTPException(status_code=500, detail="無法連接資料庫")
+
+# 捕捉 SQL 錯誤  
+def execute_query(cursor, query, params=None):
+    try:
+        cursor.execute(query, params)
+    except mysql.connector.Error as e:
+        logging.error(f"SQL 查詢錯誤: {e}")
+        raise HTTPException(status_code=500, detail={"error": True, "message": f"資料庫錯誤: {str(e)}"})
 
 @app.get("/api/attractions")
 def get_attractions(
@@ -187,9 +199,14 @@ def decode_token(token: str):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
+        logging.warning(f"Token 已過期: {token}")
         raise HTTPException(status_code=401, detail={"error": True, "message": "Token已過期"})
     except jwt.InvalidTokenError:
+        logging.warning(f"無效的 Token: {token}")
         raise HTTPException(status_code=401, detail={"error": True, "message": "無效的Token"})
+    except Exception as e:
+        logging.error(f"JWT 解碼錯誤: {str(e)}")
+        raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})
     
 # 輸入參數 Schema
 class UserRegister(BaseModel):
@@ -249,6 +266,7 @@ def login_user(login_data: dict):
     password = login_data.get("password")
 
     if not email or not password:
+        logging.warning(f"登入失敗：缺少電子郵件或密碼，輸入資料：{login_data}")
         raise HTTPException(status_code=400, detail={
             "error": True,
             "message": "請填寫帳號與密碼"
@@ -265,6 +283,7 @@ def login_user(login_data: dict):
         user = cursor.fetchone()
 
         if not user:
+            logging.warning(f"登入失敗：使用者不存在，電子郵件：{email}")
             raise HTTPException(status_code=400, detail={
                 "error": True,
                 "message": "登入失敗，帳號或密碼錯誤或其他原因"
@@ -272,6 +291,7 @@ def login_user(login_data: dict):
 
         # 密碼比對
         if not bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
+            logging.warning(f"登入失敗：密碼錯誤，電子郵件：{email}")
             raise HTTPException(status_code=400, detail={
                 "error": True,
                 "message": "登入失敗，帳號或密碼錯誤或其他原因"
@@ -282,13 +302,11 @@ def login_user(login_data: dict):
             "name": user["name"],
             "email": user["email"]
         })
-        decoded_payload = decode_token(token)
-        print(decoded_payload)
-
+        logging.info(f"登入成功，使用者：{user['email']}")
         return {"ok": True, "token": token}
 
     except Exception as e:
-        print(f"登入錯誤: {str(e)}")
+        logging.error(f"登入錯誤：{str(e)}")
         raise HTTPException(status_code=500, detail={
             "error": True,
             "message": f"伺服器內部錯誤: {str(e)}"
@@ -309,3 +327,11 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         }}
     except Exception as e:
         return {"data": None}
+    
+@app.exception_handler(Exception)
+def global_exception_handler(request, exc):
+    logging.error(f"伺服器錯誤: {str(exc)}，請求路徑: {request.url}")
+    return JSONResponse(
+        status_code=500,
+        content={"message": "伺服器內部錯誤"}
+    )
