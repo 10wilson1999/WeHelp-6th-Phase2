@@ -271,7 +271,7 @@ def login_user(login_data: dict):
             })
 
         # 密碼比對
-        if not bcrypt.checkpw(password.encode('utf-8'), user["password"]):
+        if not bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
             raise HTTPException(status_code=400, detail={
                 "error": True,
                 "message": "登入失敗，帳號或密碼錯誤或其他原因"
@@ -282,6 +282,8 @@ def login_user(login_data: dict):
             "name": user["name"],
             "email": user["email"]
         })
+        decoded_payload = decode_token(token)
+        print(decoded_payload)
 
         return {"ok": True, "token": token}
 
