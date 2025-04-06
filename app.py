@@ -243,6 +243,8 @@ def login_user(login_data: dict):
     email = login_data.get("email")
     password = login_data.get("password")
 
+    print(f"登入請求的資料: {login_data}")  # 印出登入資料
+
     if not email or not password:
         raise HTTPException(status_code=400, detail={
             "error": True,
@@ -256,7 +258,9 @@ def login_user(login_data: dict):
     try:
         cursor.execute("SELECT id, name, email, password FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
-        
+
+        print(f"從資料庫查詢到的用戶: {user}")  # 印出查詢到的用戶資料
+
         if user and user["password"] == hashed_pw:
             token = create_token({"id": user["id"], "name": user["name"], "email": user["email"]})
             return {"ok": True, "token": token}
@@ -266,6 +270,7 @@ def login_user(login_data: dict):
                 "message": "帳號或密碼錯誤"
             })
     except Exception as e:
+        print(f"伺服器錯誤: {e}")  # 印出錯誤訊息
         raise HTTPException(status_code=500, detail={
             "error": True,
             "message": f"伺服器錯誤: {str(e)}"
