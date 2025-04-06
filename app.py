@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException, Depends, Request # type: ignore
-from fastapi.responses import FileResponse # type: ignore
+from fastapi.responses import FileResponse, JSONResponse # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
@@ -290,7 +290,7 @@ def login_user(login_data: dict):
             })
 
         # 密碼比對
-        if not bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
+        if not bcrypt.checkpw(password.encode('utf-8'), user["password"]):
             logging.warning(f"登入失敗：密碼錯誤，電子郵件：{email}")
             raise HTTPException(status_code=400, detail={
                 "error": True,
