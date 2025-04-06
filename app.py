@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
 from datetime import datetime, timedelta
 import mysql.connector # type: ignore
-import bcrypt
+import bcrypt # type: ignore
 import jwt # type: ignore
 from pydantic import BaseModel # type: ignore
 from typing import Optional, List
