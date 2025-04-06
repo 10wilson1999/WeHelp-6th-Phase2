@@ -290,7 +290,7 @@ def login_user(login_data: dict):
             })
 
         # 密碼比對
-        if not bcrypt.checkpw(password.encode('utf-8'), user["password"]):
+        if not bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
             logging.warning(f"登入失敗：密碼錯誤，電子郵件：{email}")
             raise HTTPException(status_code=400, detail={
                 "error": True,
