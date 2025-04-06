@@ -75,7 +75,7 @@ def update_password_to_bcrypt():
         sha256_password = sha256_password[2:]
 
         # 將 SHA-256 密碼解碼成字節並使用 bcrypt 生成新的密碼哈希
-        password_bytes = bytes.fromhex(sha256_password)
+        password_bytes = bytes.fromhex(sha256_password.decode()) 
         bcrypt_hashed_pw = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
 
         # 更新資料庫中的密碼欄位為 bcrypt 格式
