@@ -172,7 +172,7 @@ def hash_password(password: str) -> str:
 # 比對密碼
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     # 驗證密碼與已儲存的哈希是否匹配
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
 
 # 產生 JWT token
 def create_token(data: dict) -> str:
