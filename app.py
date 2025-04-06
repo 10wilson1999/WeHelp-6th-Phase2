@@ -58,6 +58,39 @@ def get_db_connection():
         database="taipei_travel"
     )
 
+# 更新密碼為 bcrypt 格式
+def update_password_to_bcrypt():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 查詢所有用戶的密碼
+    cursor.execute("SELECT id, password FROM users")
+    users = cursor.fetchall()
+
+    for user in users:
+        user_id = user[0]
+        sha256_password = user[1]
+
+        # 移除十六進制的 '0x' 前綴
+        sha256_password = sha256_password[2:]
+
+        # 將 SHA-256 密碼解碼成字節並使用 bcrypt 生成新的密碼哈希
+        password_bytes = bytes.fromhex(sha256_password)
+        bcrypt_hashed_pw = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+
+        # 更新資料庫中的密碼欄位為 bcrypt 格式
+        cursor.execute(
+            "UPDATE users SET password = %s WHERE id = %s",
+            (bcrypt_hashed_pw, user_id)
+        )
+
+    # 提交變更並關閉連線
+    conn.commit()
+    conn.close()
+
+# 執行更新密碼
+update_password_to_bcrypt()
+
 @app.get("/api/attractions")
 def get_attractions(
     page: int = Query(0, ge=0),
@@ -166,12 +199,15 @@ security = HTTPBearer() # type: ignore
 
 # 密碼雜湊（bcrypt）
 def hash_password(password: str) -> str:
-    # 生成 bcrypt 哈希
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    # 生成隨機鹽值
+    salt = bcrypt.gensalt()
+    # 使用 bcrypt 的加密方法來生成密碼哈希
+    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed_pw
 
 # 比對密碼
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # 驗證密碼與已儲存的哈希是否匹配
+def verify_password(plain_password: str, hashed_password: bytes) -> bool:
+    # 使用 bcrypt 檢查密碼和哈希是否匹配
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
 
 # 產生 JWT token
