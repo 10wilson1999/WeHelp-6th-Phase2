@@ -254,28 +254,21 @@ def login_user(login_data: dict):
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute(
-            "SELECT id, name, email FROM users WHERE email = %s AND password = %s",
-            (email, hashed_pw)
-        )
+        cursor.execute("SELECT id, name, email, password FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
-        if not user:
+        
+        if user and user["password"] == hashed_pw:
+            token = create_token({"id": user["id"], "name": user["name"], "email": user["email"]})
+            return {"ok": True, "token": token}
+        else:
             raise HTTPException(status_code=400, detail={
                 "error": True,
-                "message": "登入失敗，帳號或密碼錯誤或其他原因"
+                "message": "帳號或密碼錯誤"
             })
-
-        token = create_token({
-            "id": user["id"],
-            "name": user["name"],
-            "email": user["email"]
-        })
-
-        return {"token": token}
     except Exception as e:
         raise HTTPException(status_code=500, detail={
             "error": True,
-            "message": f"伺服器內部錯誤: {str(e)}"
+            "message": f"伺服器錯誤: {str(e)}"
         })
     finally:
         conn.close()
