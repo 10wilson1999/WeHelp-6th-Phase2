@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
 from datetime import datetime, timedelta
 import mysql.connector # type: ignore
-import hashlib
+import bcrypt
 import jwt # type: ignore
 from pydantic import BaseModel # type: ignore
 from typing import Optional, List
@@ -164,9 +164,15 @@ TOKEN_EXPIRE_DAYS = 7
 
 security = HTTPBearer() # type: ignore
 
-# 密碼雜湊（SHA-256）
+# 密碼雜湊（bcrypt）
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    # 生成 bcrypt 哈希
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+# 比對密碼
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    # 驗證密碼與已儲存的哈希是否匹配
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 # 產生 JWT token
 def create_token(data: dict) -> str:
@@ -251,7 +257,6 @@ def login_user(login_data: dict):
             "message": "請填寫帳號與密碼"
         })
 
-    hashed_pw = hash_password(password)
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -261,7 +266,7 @@ def login_user(login_data: dict):
 
         print(f"從資料庫查詢到的用戶: {user}")  # 印出查詢到的用戶資料
 
-        if user and user["password"] == hashed_pw:
+        if user and verify_password(password, user["password"]):  # 使用 bcrypt 驗證密碼
             token = create_token({"id": user["id"], "name": user["name"], "email": user["email"]})
             return {"ok": True, "token": token}
         else:
