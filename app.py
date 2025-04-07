@@ -1,3 +1,4 @@
+from sqlite3 import Cursor
 from fastapi import FastAPI, Query, HTTPException, Depends, Request # type: ignore
 from fastapi.responses import FileResponse # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
@@ -11,6 +12,8 @@ import bcrypt # type: ignore
 import jwt # type: ignore
 from pydantic import BaseModel # type: ignore
 from typing import Optional, List
+from databases import Database # type: ignore
+import time
 
 app = FastAPI()  # type: ignore
 
@@ -59,7 +62,7 @@ dbconfig = {
     "password": "10wilson1999",
     "database": "taipei_travel"
 }
-cnxpool = pooling.MySQLConnectionPool(pool_name="mypool", pool_size=5, **dbconfig)
+cnxpool = pooling.MySQLConnectionPool(pool_name="mypool", pool_size=20, **dbconfig)
 
 # 連接 MySQL
 # 取得連線
@@ -165,6 +168,18 @@ def get_mrt_list():
     except mysql.connector.Error as e:
         raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})
 
+# 定義你的資料庫 URL
+DATABASE_URL = "mysql+aiomysql://root:10wilson1999@localhost/taipei_travel"
+database = Database(DATABASE_URL)
+
+@app.on_event("startup")
+async def startup():
+    await database.connect()
+
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()
+
 # JWT 設定
 SECRET_KEY = "10wilson1999"
 ALGORITHM = "HS256"
@@ -175,7 +190,7 @@ security = HTTPBearer() # type: ignore
 # 密碼雜湊（bcrypt）
 async def hash_password(password: str) -> str:
     # 生成隨機鹽值
-    salt = bcrypt.gensalt(rounds=8)
+    salt = bcrypt.gensalt(rounds=4)
     # 使用 bcrypt 的加密方法來生成密碼哈希
     hashed_pw = await run_in_threadpool(bcrypt.hashpw, password.encode('utf-8'), salt)
     return hashed_pw
@@ -307,3 +322,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         }}
     except Exception as e:
         return {"data": None}
+    
+start_time = time.time()
+Cursor.execute("SELECT id FROM users WHERE email = %s", (email,)) # type: ignore
+query_duration = time.time() - start_time
+print(f"查詢執行時間: {query_duration} 秒")
