@@ -241,7 +241,7 @@ async def register_user(user: dict):
             "message": "請填寫所有欄位"
         })
 
-    hashed_pw = await hash_password(password)
+    hashed_pw = (await hash_password(password)).decode('utf-8')
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -297,7 +297,7 @@ async def login_user(login_data: dict):  # 確保你正確接收傳遞的資料
 
         print(f"從資料庫查詢到的用戶: {user}")  # 印出查詢到的用戶資料
 
-        if user and verify_password(password, user["password"]):  # 驗證密碼
+        if user and await verify_password(password, user["password"]):  # 驗證密碼
             token = create_token({"id": user["id"], "name": user["name"], "email": user["email"]})
             return {"ok": True, "token": token}
         else:
