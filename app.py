@@ -122,11 +122,12 @@ def get_attractions(
 
 @app.get("/api/attraction/{attractionId}")
 def get_attraction(attractionId: int):
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # 查詢景點資料
         cursor.execute("""
             SELECT id, name, category, description, address, transport, mrt, lat, lng
             FROM attractions WHERE id = %s
@@ -136,28 +137,29 @@ def get_attraction(attractionId: int):
         if not attraction:
             raise HTTPException(status_code=400, detail={"error": True, "message": "景點編號不正確"})
 
-        # 查詢圖片 URL
         cursor.execute("SELECT image_url FROM images WHERE attraction_id = %s", (attractionId,))
         images = [row["image_url"] for row in cursor.fetchall()]
 
         attraction["images"] = images
 
-        conn.close()
         return {"data": attraction}
 
     except mysql.connector.Error as e:
         raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})
-    
     finally:
-        cursor.close()  # 保證游標被關閉
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @app.get("/api/mrts")
 def get_mrt_list():
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # 查詢捷運站名稱，按照景點數量排序
         cursor.execute("""
             SELECT mrt, COUNT(*) AS attraction_count
             FROM attractions
@@ -168,11 +170,15 @@ def get_mrt_list():
         
         mrt_list = [row[0] for row in cursor.fetchall()]
 
-        conn.close()
         return {"data": mrt_list}
 
     except mysql.connector.Error as e:
         raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # 定義你的資料庫 URL
 DATABASE_URL = "mysql+aiomysql://root:10wilson1999@localhost/taipei_travel"
@@ -278,22 +284,15 @@ async def register_user(user: dict):
 
 # 2️. 登入會員帳戶
 @app.put("/api/user/auth")
-async def login_user(login_data: dict):  # 確保你正確接收傳遞的資料
-    email = login_data.get("email")  # 從 login_data 中提取 email
-    password = login_data.get("password")  # 提取密碼
-
-    print(f"登入請求的資料: {login_data}")  # 印出登入資料
+async def login_user(login_data: dict):
+    email = login_data.get("email")
+    password = login_data.get("password")
 
     if not email or not password:
         raise HTTPException(status_code=400, detail={
             "error": True,
             "message": "請填寫帳號與密碼"
         })
-
-    # 在這裡測量查詢執行時間
-    start_time = time.time()
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -302,9 +301,7 @@ async def login_user(login_data: dict):  # 確保你正確接收傳遞的資料
         cursor.execute("SELECT id, name, email, password FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
 
-        print(f"從資料庫查詢到的用戶: {user}")  # 印出查詢到的用戶資料
-
-        if user and await verify_password(password, user["password"]):  # 驗證密碼
+        if user and await verify_password(password, user["password"]):
             token = create_token({"id": user["id"], "name": user["name"], "email": user["email"]})
             return {"ok": True, "token": token}
         else:
@@ -313,14 +310,13 @@ async def login_user(login_data: dict):  # 確保你正確接收傳遞的資料
                 "message": "帳號或密碼錯誤"
             })
     except Exception as e:
-        print(f"伺服器錯誤: {e}")  # 印出錯誤訊息
         raise HTTPException(status_code=500, detail={
             "error": True,
             "message": f"伺服器錯誤: {str(e)}"
         })
     finally:
-        cursor.close()  # 保證游標被關閉
-        conn.close()    # 保證連線被關閉
+        cursor.close()
+        conn.close()
 
 # 3️. 取得當前登入的會員資訊
 @app.get("/api/user/auth")
