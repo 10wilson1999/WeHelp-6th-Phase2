@@ -3,6 +3,8 @@ from fastapi.responses import FileResponse # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
+from fastapi.concurrency import run_in_threadpool # type: ignore
+from mysql.connector import pooling
 from datetime import datetime, timedelta
 import mysql.connector # type: ignore
 import bcrypt # type: ignore
@@ -50,13 +52,19 @@ async def thankyou(request: Request):  # type: ignore
     return FileResponse("./static/thankyou.html", media_type="text/html")
 
 # 連接 MySQL
+# 建立連線池（伺服器啟動時只做一次）
+dbconfig = {
+    "host": "localhost",
+    "user": "root",
+    "password": "10wilson1999",
+    "database": "taipei_travel"
+}
+cnxpool = pooling.MySQLConnectionPool(pool_name="mypool", pool_size=5, **dbconfig)
+
+# 連接 MySQL
+# 取得連線
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="10wilson1999",
-        database="taipei_travel"
-    )
+    return cnxpool.get_connection()
 
 @app.get("/api/attractions")
 def get_attractions(
@@ -165,17 +173,17 @@ TOKEN_EXPIRE_DAYS = 7
 security = HTTPBearer() # type: ignore
 
 # 密碼雜湊（bcrypt）
-def hash_password(password: str) -> str:
+async def hash_password(password: str) -> str:
     # 生成隨機鹽值
     salt = bcrypt.gensalt(rounds=8)
     # 使用 bcrypt 的加密方法來生成密碼哈希
-    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), salt)
+    hashed_pw = await run_in_threadpool(bcrypt.hashpw, password.encode('utf-8'), salt)
     return hashed_pw
 
 # 比對密碼
-def verify_password(plain_password: str, hashed_password: bytes) -> bool:
+async def verify_password(plain_password: str, hashed_password: bytes) -> bool:
     # 使用 bcrypt 檢查密碼和哈希是否匹配
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
+    return await run_in_threadpool(bcrypt.checkpw, plain_password.encode('utf-8'), hashed_password)
 
 # 產生 JWT token
 def create_token(data: dict) -> str:
