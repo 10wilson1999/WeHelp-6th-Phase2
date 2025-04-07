@@ -215,7 +215,7 @@ class UserLogin(BaseModel):
 
 # 1️. 註冊新會員
 @app.post("/api/user")
-def register_user(user: dict):
+async def register_user(user: dict):
     name = user.get("name")
     email = user.get("email")
     password = user.get("password")
@@ -226,7 +226,7 @@ def register_user(user: dict):
             "message": "請填寫所有欄位"
         })
 
-    hashed_pw = hash_password(password)
+    hashed_pw = await hash_password(password)
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -256,7 +256,7 @@ def register_user(user: dict):
 
 # 2️. 登入會員帳戶
 @app.put("/api/user/auth")
-def login_user(login_data: dict):
+async def login_user(login_data: dict):
     email = login_data.get("email")
     password = login_data.get("password")
 
