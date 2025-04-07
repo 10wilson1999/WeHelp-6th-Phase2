@@ -107,6 +107,10 @@ def get_attractions(
     except mysql.connector.Error as e:
         raise HTTPException(status_code=500, detail={"error": True, "message": f"資料庫錯誤: {str(e)}"})
 
+    finally:
+        cursor.close()  # 保證游標被關閉
+        conn.close()    # 保證連線被關閉
+
     # 處理圖片 URL 列表
     for result in results:
         result["images"] = result["images"].split(",") if result["images"] else []
@@ -144,6 +148,10 @@ def get_attraction(attractionId: int):
 
     except mysql.connector.Error as e:
         raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器內部錯誤: {str(e)}"})
+    
+    finally:
+        cursor.close()  # 保證游標被關閉
+        conn.close()    # 保證連線被關閉
 
 @app.get("/api/mrts")
 def get_mrt_list():
@@ -312,7 +320,8 @@ async def login_user(login_data: dict):  # 確保你正確接收傳遞的資料
             "message": f"伺服器錯誤: {str(e)}"
         })
     finally:
-        conn.close()
+        cursor.close()  # 保證游標被關閉
+        conn.close()    # 保證連線被關閉
 
 # 3️. 取得當前登入的會員資訊
 @app.get("/api/user/auth")
