@@ -324,6 +324,6 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         return {"data": None}
     
 start_time = time.time()
-Cursor.execute("SELECT id FROM users WHERE email = %s", (email,)) # type: ignore
+Cursor.execute("SELECT id FROM users WHERE email = %s", (login_data.get('email'),)) # type: ignore
 query_duration = time.time() - start_time
 print(f"查詢執行時間: {query_duration} 秒")
