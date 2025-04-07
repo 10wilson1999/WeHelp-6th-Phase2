@@ -283,6 +283,11 @@ async def login_user(login_data: dict):  # 確保你正確接收傳遞的資料
             "message": "請填寫帳號與密碼"
         })
 
+    # 在這裡測量查詢執行時間
+    start_time = time.time()
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -322,8 +327,3 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         }}
     except Exception as e:
         return {"data": None}
-    
-start_time = time.time()
-Cursor.execute("SELECT id FROM users WHERE email = %s", (login_data.get('email'),)) # type: ignore
-query_duration = time.time() - start_time
-print(f"查詢執行時間: {query_duration} 秒")
