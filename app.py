@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
 from fastapi.concurrency import run_in_threadpool # type: ignore
-from mysql.connector import pooling
+from mysql.connector import pooling # type: ignore
 from datetime import datetime, timedelta
 import mysql.connector # type: ignore
 import bcrypt # type: ignore
