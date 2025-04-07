@@ -271,9 +271,9 @@ async def register_user(user: dict):
 
 # 2️. 登入會員帳戶
 @app.put("/api/user/auth")
-async def login_user(login_data: dict):
-    email = login_data.get("email")
-    password = login_data.get("password")
+async def login_user(login_data: dict):  # 確保你正確接收傳遞的資料
+    email = login_data.get("email")  # 從 login_data 中提取 email
+    password = login_data.get("password")  # 提取密碼
 
     print(f"登入請求的資料: {login_data}")  # 印出登入資料
 
@@ -292,7 +292,7 @@ async def login_user(login_data: dict):
 
         print(f"從資料庫查詢到的用戶: {user}")  # 印出查詢到的用戶資料
 
-        if user and verify_password(password, user["password"]):  # 使用 bcrypt 驗證密碼
+        if user and verify_password(password, user["password"]):  # 驗證密碼
             token = create_token({"id": user["id"], "name": user["name"], "email": user["email"]})
             return {"ok": True, "token": token}
         else:
