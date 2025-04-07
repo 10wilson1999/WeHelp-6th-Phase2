@@ -167,7 +167,7 @@ security = HTTPBearer() # type: ignore
 # 密碼雜湊（bcrypt）
 def hash_password(password: str) -> str:
     # 生成隨機鹽值
-    salt = bcrypt.gensalt()
+    salt = bcrypt.gensalt(rounds=8)
     # 使用 bcrypt 的加密方法來生成密碼哈希
     hashed_pw = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hashed_pw
