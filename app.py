@@ -109,7 +109,6 @@ def get_attractions(
 
     finally:
         cursor.close()  # 保證游標被關閉
-        conn.close()    # 保證連線被關閉
 
     # 處理圖片 URL 列表
     for result in results:
@@ -151,7 +150,6 @@ def get_attraction(attractionId: int):
     
     finally:
         cursor.close()  # 保證游標被關閉
-        conn.close()    # 保證連線被關閉
 
 @app.get("/api/mrts")
 def get_mrt_list():
@@ -275,6 +273,7 @@ async def register_user(user: dict):
             "message": f"伺服器內部錯誤: {str(e)}"
         })
     finally:
+        cursor.close()
         conn.close()
 
 # 2️. 登入會員帳戶
