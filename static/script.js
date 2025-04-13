@@ -315,3 +315,39 @@ window.addEventListener('load', async () => {
 
 // 預設先掛 openLoginDialog
 menuItem.addEventListener('click', openLoginDialog);
+
+// Booking 選取「預定行程」按鈕
+const bookingButton = document.querySelectorAll('.menu .item')[0];
+
+// Booking 點擊事件處理函式 先檢查登入狀態，再執行對應的動作
+bookingButton.addEventListener('click', async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        // 尚未登入
+        openLoginDialog();
+        return;
+    }
+
+    try {
+        const response = await fetch('http://52.62.175.53:8000/api/user/auth', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.data) {
+            // 使用者已登入，導向 booking 頁面
+            window.location.href = 'http://52.62.175.53:8000/booking';
+        } else {
+            // token 無效或登入過期，清除並顯示登入畫面
+            localStorage.removeItem('token');
+            openLoginDialog();
+        }
+    } catch (error) {
+        console.error('檢查登入狀態時發生錯誤', error);
+        openLoginDialog();
+    }
+});

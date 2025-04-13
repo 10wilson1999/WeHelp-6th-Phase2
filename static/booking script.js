@@ -1,12 +1,53 @@
 // 返回首頁
-document.addEventListener("DOMContentLoaded", function () {
-    // 選取 .title 元素
-    const titleElement = document.querySelector(".title");
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. 登入檢查
+    const user = await getCurrentUser();
+    if (!user) {
+        window.location.href = "http://52.62.175.53:8000/";
+        return;
+    }
 
-    // 監聽點擊事件，導向首頁
-    titleElement.addEventListener("click", function () {
+    // 2. 登入後 UI 處理
+    await updateUIAfterLogin();
+
+    // 3. 顯示預約資訊
+    await fetchBookingInfo();
+
+    // 4. 標題點擊導向首頁
+    document.querySelector(".title").addEventListener("click", () => {
         window.location.href = "http://52.62.175.53:8000/";
     });
+
+    // 5. 綁定「取消預約」按鈕
+    const confirmBtn = document.querySelector(".confirm-button button");
+    if (confirmBtn) {
+        confirmBtn.addEventListener("click", async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                openLoginDialog();
+                return;
+            }
+
+            try {
+                const deleteResponse = await fetch("http://52.62.175.53:8000/api/booking", {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                const deleteResult = await deleteResponse.json();
+
+                if (deleteResponse.ok && deleteResult.ok) {
+                    alert("已成功取消預約");
+                    window.location.reload();
+                } else {
+                    alert(deleteResult.message || "取消預約失敗");
+                }
+            } catch (error) {
+                console.error("刪除預約時發生錯誤:", error);
+                alert("系統錯誤，請稍後再試");
+            }
+        });
+    }
 });
 
 // Booking infor
@@ -39,6 +80,7 @@ async function fetchBookingInfo() {
         if (!booking) {
             document.querySelector(".headline").innerHTML = `<span>您好，</span><span>${user.name}</span><span>，目前沒有預定的行程。</span>`;
             document.querySelector(".section").style.display = "none";
+            document.querySelector(".section-hr").style.display = "none";
             document.querySelector(".confirm").style.display = "none";
             return;
         }
