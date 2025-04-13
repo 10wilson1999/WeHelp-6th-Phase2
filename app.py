@@ -1,4 +1,3 @@
-from sqlite3 import Cursor
 from fastapi import FastAPI, Query, HTTPException, Depends, Request # type: ignore
 from fastapi.responses import FileResponse # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
@@ -12,14 +11,13 @@ import bcrypt # type: ignore
 import jwt # type: ignore
 from pydantic import BaseModel # type: ignore
 from typing import Optional, List
-from databases import Database # type: ignore
 import time
 
 app = FastAPI()  # type: ignore
 
 # 允許的來源網址
 origins = [
-    "http://3.27.156.245:8000/"
+    "http://3.27.156.245:8000"
 ]
 
 # 提供靜態文件
@@ -28,7 +26,7 @@ app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 # 加入 CORS 中間件
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 允許的來源
+    allow_origins=origins,  # 允許的來源
     allow_credentials=True,
     allow_methods=["*"],  # 允許所有 HTTP 方法
     allow_headers=["*"],  # 允許所有 Header
@@ -180,18 +178,6 @@ def get_mrt_list():
         if conn:
             conn.close()
 
-# 定義你的資料庫 URL
-DATABASE_URL = "mysql+aiomysql://root:10wilson1999@localhost/taipei_travel"
-database = Database(DATABASE_URL)
-
-@app.on_event("startup")
-async def startup():
-    await database.connect()
-
-@app.on_event("shutdown")
-async def shutdown():
-    await database.disconnect()
-
 # JWT 設定
 SECRET_KEY = "10wilson1999"
 ALGORITHM = "HS256"
@@ -221,14 +207,16 @@ def create_token(data: dict) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 # 驗證 JWT token 並取得使用者資料
-def decode_token(token: str):
+# 驗證 JWT token 並取得使用者資料
+def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
+        return payload  # 可以回傳user資料，如user_id
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail={"error": True, "message": "Token已過期"})
+        raise HTTPException(status_code=403, detail={"error": True, "message": "登入憑證過期"})
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail={"error": True, "message": "無效的Token"})
+        raise HTTPException(status_code=403, detail={"error": True, "message": "無效的登入憑證"})
     
 # 輸入參數 Schema
 class UserRegister(BaseModel):
@@ -323,7 +311,7 @@ async def login_user(login_data: dict):
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     try:
-        user_data = decode_token(token)
+        user_data = verify_jwt(token)
         return {"data": {
             "id": user_data["id"],
             "name": user_data["name"],
@@ -331,3 +319,104 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         }}
     except Exception as e:
         return {"data": None}
+
+# Booking資料模型
+class BookingRequest(BaseModel):
+    attractionId: int
+    date: str
+    time: str
+    price: int
+
+# Booking 取得尚未確認預定下單的行程
+@app.get("/api/booking")
+async def get_booking(user_data: dict = Depends(verify_jwt)):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        user_id = user_data["id"]
+
+        cursor.execute("""
+            SELECT b.attraction_id, b.date, b.time, b.price, a.name, a.address
+            FROM bookings b
+            JOIN attractions a ON b.attraction_id = a.id
+            WHERE b.user_id = %s
+        """, (user_id,))
+        booking = cursor.fetchone()
+
+        if not booking:
+            return {"data": None}
+
+        # 取第一張景點圖片
+        cursor.execute("SELECT image_url FROM images WHERE attraction_id = %s LIMIT 1", (booking["attraction_id"],))
+        image = cursor.fetchone()
+        image_url = image["image_url"] if image else None
+
+        data = {
+            "attraction": {
+                "id": booking["attraction_id"],
+                "name": booking["name"],
+                "address": booking["address"],
+                "image": image_url
+            },
+            "date": booking["date"],
+            "time": booking["time"],
+            "price": booking["price"]
+        }
+
+        return {"data": data}
+
+    except mysql.connector.Error as e:
+        raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器錯誤: {str(e)}"})
+    finally:
+        cursor.close()
+        conn.close()
+
+# Booking 建立新的預定行程
+@app.post("/api/booking")
+async def create_booking(booking: BookingRequest, user_data: dict = Depends(verify_jwt)):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        user_id = user_data["id"]
+
+        # 先刪除舊的預定行程（如果有）
+        cursor.execute("DELETE FROM bookings WHERE user_id = %s", (user_id,))
+
+        # 插入新的預定行程
+        cursor.execute("""
+            INSERT INTO bookings (user_id, attraction_id, date, time, price)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (user_id, booking.attractionId, booking.date, booking.time, booking.price))
+        conn.commit()
+
+        return {"ok": True}
+
+    except mysql.connector.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器錯誤: {str(e)}"})
+    except Exception:
+        raise HTTPException(status_code=400, detail={"error": True, "message": "資料輸入錯誤"})
+    finally:
+        cursor.close()
+        conn.close()
+
+# Booking 刪除目前的預定行程
+@app.delete("/api/booking")
+async def delete_booking(user_data: dict = Depends(verify_jwt)):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        user_id = user_data["id"]
+
+        cursor.execute("DELETE FROM bookings WHERE user_id = %s", (user_id,))
+        conn.commit()
+
+        return {"ok": True}
+
+    except mysql.connector.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail={"error": True, "message": f"伺服器錯誤: {str(e)}"})
+    finally:
+        cursor.close()
+        conn.close()
+

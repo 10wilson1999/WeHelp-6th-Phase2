@@ -1,0 +1,446 @@
+/* 通用樣式 */
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+#booking {
+    width: 100%;
+}
+
+/* 導覽列 */
+.navbar {
+    display: flex;
+    justify-content: center;
+    background-color: white;
+}
+
+.navbar .title {
+    flex: none;
+    width: 50%;
+    text-align: left;
+    font-size: 30px;
+    font-weight: bold;
+    color: #448899;
+}
+
+.navbar .menu {
+    flex: none;
+    width: 50%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+}
+
+.menu .item {
+    flex: none;
+    font-size: 16px;
+    color: #666666;
+    text-align: center;
+    padding-top: 10px;
+    cursor: pointer;
+}
+
+/* navbar-hr */
+.navbar-hr {
+    border: none;
+    border-top: 1px solid #E8E8E8;
+}
+
+/* Headline */
+.headline {
+    height: 27px;
+    text-align: left;
+    font-size: 19px;
+    font-weight: 700;
+    color: #666666;
+}
+
+/* Section */
+.picture {
+    height: 200px;
+}
+
+/* Section Picture */
+.picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Section infor */
+.infor {
+    position: relative;
+}
+
+.infor .title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #448899;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.infor .detail {
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.infor .subtitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: #666666;
+}
+
+.infor .content {
+    font-size: 16px;
+    font-weight: 400;
+    color: #666666;
+}
+
+.infor .delete {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+}
+
+/* section-hr */
+.section-hr {
+    border: none;
+    border-top: 1px solid #E8E8E8;
+}
+
+/* Contact */
+.contact .title {
+    text-align: left;
+    font-size: 19px;
+    font-weight: 700;
+    color: #666666;
+    margin-bottom: 20px;
+}
+
+.contact-infor {
+    margin-bottom: 15px;
+    justify-content: left;
+}
+
+.contact-infor .subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    color: #666666;
+}
+
+.contact input {
+    width: 200px;
+    height: 38px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.contact .note {
+    font-size: 16px;
+    font-weight: 700;
+    color: #666666;
+}
+
+/* Confirm */
+.confirm {
+    position: relative;
+    text-align: right;
+}
+
+.confirm .confirm-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: #666666;
+    margin-bottom: 22px;
+}
+
+.confirm .confirm-button {
+    position: absolute;
+    right: 0px;
+}
+
+.confirm button {
+    width: 173px;
+    height: 36px;
+    background-color: #448899;
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    font-weight: 400;
+    font-size: 19px;
+    color: #FFFFFF;
+    border-radius: 5px;
+}
+
+/* copyright */
+.copyright{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 104px;
+    background-color: #757575;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+}
+
+/* Dialog 表單通用 */
+.form {
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+    gap: 5px;
+}
+
+.form-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #666666;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.form input {
+    height: 30px;
+    padding: 5px 15px;
+    margin: 5px 0;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.form button {
+    background-color: #448899;
+    color: white;
+    padding: 10px 20px;
+    margin: 5px 0;
+    font-size: 19px;
+    font-weight: 400;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form-switch {
+    text-align: center;
+    font-weight: 500;
+    font-size: 16px;
+    color: #666666;
+}
+
+.form-switch span {
+    color: #666666;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+/* Dialog 外層 */
+.dialog-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 80px;
+    z-index: 1000;
+}
+
+/* Dialog 內容 */
+.dialog {
+    background: #fff;
+    width: 310px;
+    padding: 15px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.dialog-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 340px;
+    height: 10px;
+    background: linear-gradient(to right, #66AABB, #337788);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+/* Dialog 關閉按鈕 */
+.dialog-close {
+    position: absolute;
+    top: 20px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 20px;
+    color: #757575;
+}
+
+/* Dialog 提示訊息 */
+.form-message {
+    font-weight: 500;
+    font-size: 16px;
+    text-align: center;
+}
+
+/* Dialog 登入高度 */
+.login-form {
+    min-height: 245px;
+}
+
+/* Dialog 註冊高度 */
+.register-form {
+    min-height: 302px;
+}
+
+/* RWD */
+@media (min-width: 360px) {
+    .navbar {
+        width: auto;
+        margin: 10px;
+    }
+    .headline {
+        width: auto;
+        margin: 40px 10px 30px 10px;
+    }
+    .section {
+        width: auto;
+        margin: 0 10px 40px 10px;
+    }
+    .picture {
+        width: 100%;
+    }
+    .infor {
+        margin-top: 30px;
+        width: 100%;
+        height: 200px;
+    }
+    .infor .delete {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+    .section-hr {
+        width: auto;
+        margin: 30px 10px 40px 10px;
+    }
+    .contact {
+        width: auto;
+        margin: 0 10px;
+    }
+    .confirm {
+        width: auto;
+        margin: 0 10px 120px 10px;
+    }
+    .copyright {
+        margin-top: 50px;
+    }
+}
+
+@media (min-width: 600px) {
+    .headline {
+        width: auto;
+        height: 27px;
+        text-align: left;
+        margin: 40px 10% 30px 10%;
+        font-size: 19px;
+        font-weight: 700;
+        color: #666666;
+    }
+    .section {
+        display: flex;
+        width: auto;
+        height: 200px;
+        margin: 0 10% 40px 10%;
+    }
+    .picture {
+        flex: none;
+        height: 200px;
+        width: 250px;
+    }
+    .infor {
+        flex: none;
+        margin-top: 0;
+        width: calc(100% - 270px);
+        padding-left: 30px;
+    }
+    .infor .delete {
+        top: 0;
+        right: 10px;
+    }
+
+    .section-hr {
+        width: auto;
+        margin: 30px 10% 40px 10%;
+    }
+    .contact {
+        width: auto;
+        margin: 0 10%;
+    }
+    .confirm {
+        width: auto;
+        margin: 0 10% 120px 10%;
+    }
+    .copyright {
+        margin-top: 40px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .navbar {
+        width: 1200px;
+        margin: 10px auto;
+    }
+    .navbar-hr {
+        display: block;
+    }
+    .headline {
+        width: 1000px;
+        height: 27px;
+        text-align: left;
+        margin: 40px auto 30px auto;
+        font-size: 19px;
+        font-weight: 700;
+        color: #666666;
+    }
+    .section {
+        display: flex;
+        width: 980px;
+        height: 200px;
+        margin: 0 auto 40px auto;
+    }
+    .picture {
+        flex: none;
+        height: 200px;
+        width: 250px;
+    }
+    .infor {
+        flex: none;
+        width: 700px;
+        height: 170px;
+        padding-left: 30px;
+    }
+    .section-hr {
+        width: 1200px;
+        margin: 40px auto;
+    }
+    .contact {
+        width: 980px;
+        margin: 0 auto;
+    }
+    .confirm {
+        width: 980px;
+        margin: 0 auto 120px auto;
+    }
+}
