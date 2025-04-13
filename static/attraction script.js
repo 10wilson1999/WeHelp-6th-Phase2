@@ -391,3 +391,58 @@ startBookingButton.addEventListener("click", async () => {
         alert("預約失敗，請稍後再試");
     }
 });
+
+// 綁定按鈕點擊事件
+bookingButton.addEventListener("click", async function () {
+    // 取得使用者選的日期和時間
+    const date = document.getElementById("date").value;
+    const time = document.querySelector('input[name="time"]:checked')?.value; // 'morning' or 'afternoon'
+
+    // 驗證日期跟時間有選
+    if (!date || !time) {
+        alert("請選擇日期和時間！");
+        return;
+    }
+
+    // 取得景點 id
+    const pathSegments = window.location.pathname.split("/");
+    const attractionId = pathSegments[pathSegments.length - 1];
+
+    // 檢查有沒有登入
+    const token = localStorage.getItem('token');
+    if (!token) {
+        openLoginDialog();  // 呼叫你現有的開啟登入彈窗
+        return;
+    }
+
+    // 準備要送到後端的資料
+    const bookingData = {
+        attractionId: parseInt(attractionId),
+        date: date,
+        time: time
+    };
+
+    try {
+        const response = await fetch("http://52.62.175.53:8000/api/booking", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(bookingData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.ok) {
+            // 成功預約，跳轉到 /booking 頁面
+            window.location.href = "/booking";
+        } else {
+            alert(result.message || "預約失敗，請重試！");
+        }
+
+    } catch (error) {
+        console.error("預約時發生錯誤:", error);
+        alert("系統錯誤，請稍後再試！");
+    }
+});

@@ -39,23 +39,23 @@
             <div class="date">
               <div class="subtitle">選擇日期 : </div>
               <form method="post">
-                <input type="date">
+                <input type="date" id="date">
               </form>
             </div>
             <div class="time">
               <div class="subtitle">選擇時間 : </div>
               <label class="half-day">
-                  <input type="radio" name="half-day" value="morning"> 上半天
+                  <input type="radio" name="time" value="morning"> 上半天
               </label>
               <label class="half-day">
-                  <input type="radio" name="half-day" value="afternoon"> 下半天
+                  <input type="radio" name="time" value="afternoon"> 下半天
               </label>
             </div>
             <div class="nav-price">
               <div class="subtitle">導覽費用 : </div>
               <div class="price">新台幣 2000 元</div>
             </div>
-            <button type="submit">開始預約行程</button>
+            <button type="submit" id="bookingButton">開始預約行程</button>
           </div>
         </div>
       </div>
